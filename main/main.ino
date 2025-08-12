@@ -366,11 +366,42 @@ void odpocetBomby(int doba, String mod, String heslo) {
   mainMenu();
 }
 
-void mainMenu() {
+void StndMenu(){
+
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  selectBuzz();
   lcd.clear();
-  lcd.print("Qck Stnd Lng Mor");
+  lcd.print("Qck Stnd Lng");
   lcd.setCursor(1, 1); lcd.print("1");
   lcd.setCursor(5, 1); lcd.print("2");
+  lcd.setCursor(10,1); lcd.print("3");
+
+  if (true){
+    char klavesa = klavesnice.getKey();
+    if (klavesa == '1'){
+      aktivujBombu(30, "Qck", password);
+    }
+
+    if (klavesa == '2') {
+      aktivujBombu(40, "Stnd", password);
+    }
+
+    if (klavesa == '3'){
+      aktivujBombu(60, "Lng", password);
+    }
+  }
+}
+void mainMenu() {
+  lcd.clear();
+  //lcd.print("Qck Stnd Lng Mor");
+  lcd.print("Stnd CS2 CTM Mor");
+  lcd.setCursor(1, 1); lcd.print("1");
+  lcd.setCursor(6, 1); lcd.print("2");
   lcd.setCursor(10,1); lcd.print("3");
   lcd.setCursor(14,1); lcd.print("4");
 }
@@ -397,13 +428,13 @@ void loop() {
   char klavesa = klavesnice.getKey();
 
   if (klavesa == '1') {
-    aktivujBombu(30, "Qck", password);
+    StndMenu();
   }
   if (klavesa == '2') {
     aktivujBombu(40, "Stnd", password);
   }
   if (klavesa == '3') {
-    aktivujBombu(60, "Lng", password);
+    customHra();
   }
   if (klavesa == '4') {
     MoreModes();
