@@ -71,6 +71,18 @@ void CS2Hra(){
   }
 }
 
+void Credits(){
+  selectBuzz();
+  lcd.clear();
+  lcd.setCursor(0,0); lcd.print("Udelal: Rodrick_");
+  lcd.setCursor(0,1); lcd.print("A Ocasnik");
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0,0); lcd.print("Rodrick:kod");
+  lcd.setCursor(0,1); lcd.print("Ocasnik:zapojeni");
+  delay(3000);
+  mainMenu();
+}
 void MoreModes(){
   lcd.clear();
   selectBuzz();
@@ -101,31 +113,13 @@ void MoreModes(){
       return;
     }
     if (klavesa == '4') {
-      selectBuzz();
-      lcd.clear();
-      lcd.setCursor(0,0); lcd.print("Udelal: Rodrick_");
-      lcd.setCursor(0,1); lcd.print("A Ocasnik");
-      delay(3000);
-      lcd.clear();
-      lcd.setCursor(0,0); lcd.print("Rodrick:kod");
-      lcd.setCursor(0,1); lcd.print("Ocasnik:zapojeni");
-      delay(3000);
-      mainMenu();
+      Credits();
       return;
     }
 
     if (klavesa == '#'){
       selectBuzz();
       noTone(bzucak);
-      mainMenu();
-      return;
-    }
-    delay(10);
-  }
-
-  while (true) {
-    char klavesa = klavesnice.getKey();
-    if (klavesa == '0') {
       mainMenu();
       return;
     }
@@ -381,21 +375,30 @@ void StndMenu(){
   lcd.setCursor(5, 1); lcd.print("2");
   lcd.setCursor(10,1); lcd.print("3");
 
-  if (true){
+  while (true){
     char klavesa = klavesnice.getKey();
     if (klavesa == '1'){
       aktivujBombu(30, "Qck", password);
+      return;
     }
 
     if (klavesa == '2') {
       aktivujBombu(40, "Stnd", password);
+      return;
     }
 
     if (klavesa == '3'){
       aktivujBombu(60, "Lng", password);
+      return;
+    }
+
+    if (klavesa == '#'){
+      mainMenu();
+      return;
     }
   }
 }
+
 void mainMenu() {
   lcd.clear();
   //lcd.print("Qck Stnd Lng Mor");
@@ -431,7 +434,7 @@ void loop() {
     StndMenu();
   }
   if (klavesa == '2') {
-    aktivujBombu(40, "Stnd", password);
+    mainMenu();
   }
   if (klavesa == '3') {
     customHra();
