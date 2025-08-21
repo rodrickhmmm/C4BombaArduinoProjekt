@@ -6,6 +6,9 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 String password = "7355608";
 
+int vyhral = 0;
+int prohral = 0;
+
 const int bzucak = 12;
 
 // nastavení klávesnice 4x3
@@ -28,6 +31,21 @@ void selectBuzz(){
   noTone(bzucak);
 }
 
+void Stats(){
+  selectBuzz();
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Vyhral:");
+  lcd.setCursor(8,0);
+  lcd.print(vyhral);
+  lcd.setCursor(0,1);
+  lcd.print("Prohral:");
+  lcd.setCursor(9,1);
+  lcd.print(prohral);
+  delay(2500);
+  lcd.clear();
+  mainMenu();
+}
 void CS2Hra(){
 
   String heslo = "";
@@ -86,12 +104,10 @@ void Credits(){
 void MoreModes(){
   lcd.clear();
   selectBuzz();
-  lcd.setCursor(0, 0); lcd.print("Cstm");
-  lcd.setCursor(14, 0); lcd.print("Cr");
-  lcd.setCursor(5, 0); lcd.print("CS2");
-  lcd.setCursor(1,1); lcd.print("1");
-  lcd.setCursor(6,1); lcd.print("2");
-  lcd.setCursor(14,1); lcd.print("4");
+  lcd.setCursor(0, 0); lcd.print("Stats");
+  lcd.setCursor(2,1); lcd.print("1");
+  lcd.setCursor(10, 0); lcd.print("Credits"); 
+  lcd.setCursor(12,1); lcd.print("4");
 
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
@@ -105,11 +121,7 @@ void MoreModes(){
   while (true) {
     char klavesa = klavesnice.getKey();
     if (klavesa == '1') {
-      customHra();
-      return;
-    }
-    if (klavesa == '2') {
-      CS2Hra();
+      Stats();
       return;
     }
     if (klavesa == '4') {
@@ -299,6 +311,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
         if (zadano == heslo) {
           lcd.clear();
           lcd.print("Odpovida heslu");
+          vyhral += 1;
           tone(bzucak,920);
           delay(100);
           noTone(bzucak);
@@ -354,6 +367,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
 
   lcd.clear();
   lcd.print("Bomba vybuchla");
+  prohral += 1;
   tone(bzucak,1046);
   delay(5000);
   noTone(bzucak);
@@ -393,6 +407,41 @@ void StndMenu(){
     }
 
     if (klavesa == '#'){
+      selectBuzz();
+      mainMenu();
+      return;
+    }
+  }
+}
+
+void Cs2Menu(){
+
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  selectBuzz();
+  lcd.clear();
+  lcd.print("Stnd TrueCS");
+  lcd.setCursor(1, 1); lcd.print("1");
+  lcd.setCursor(8, 1); lcd.print("2");
+
+  while (true){
+    char klavesa = klavesnice.getKey();
+    if (klavesa == '1'){
+      CS2Hra();
+      return;
+    }
+
+    if (klavesa == '2') {
+      //trueCS2Hra();
+      return;
+    }
+
+    if (klavesa == '#'){
+      selectBuzz();
       mainMenu();
       return;
     }
@@ -401,7 +450,6 @@ void StndMenu(){
 
 void mainMenu() {
   lcd.clear();
-  //lcd.print("Qck Stnd Lng Mor");
   lcd.print("Stnd CS2 CTM Mor");
   lcd.setCursor(1, 1); lcd.print("1");
   lcd.setCursor(6, 1); lcd.print("2");
@@ -434,7 +482,7 @@ void loop() {
     StndMenu();
   }
   if (klavesa == '2') {
-    mainMenu();
+    Cs2Menu();
   }
   if (klavesa == '3') {
     customHra();
