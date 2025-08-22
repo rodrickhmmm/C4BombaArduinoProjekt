@@ -102,7 +102,7 @@ void Credits(){
   mainMenu();
 }
 void MoreModes(){
-  lcd.clear();
+  lcd.clear();            
   selectBuzz();
   lcd.setCursor(0, 0); lcd.print("Stats");
   lcd.setCursor(2,1); lcd.print("1");
@@ -257,6 +257,152 @@ void aktivujBombu(int doba, String mod, String heslo){
     }
     delay(10);
   }
+}
+
+void odpocetTrueCS2(int doba, String mod, String heslo) {
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+
+  // Počkej, dokud není žádná klávesa stisknutá
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  int Time = doba;
+  String zadano = "";
+
+  lcd.clear();
+  unsigned long lastTick = millis();
+  unsigned long lastBuzz = millis();
+
+  // --- Nové proměnné pro fuse ---
+  bool zeroHeld = false;
+  unsigned long zeroHoldStart = 0;
+
+  while (Time > 0) {
+    // Časový odpočet
+    if (millis() - lastTick >= 1000) {
+      lastTick += 1000;
+      Time--;
+      lcd.clear();
+    }
+
+    // Zobrazení času
+    int hodiny = Time / 3600;
+    int minuty = (Time % 3600) / 60;
+    int sekundy = Time % 60;
+    lcd.setCursor(4, 0);
+    if (hodiny < 10) lcd.print("0");
+    lcd.print(hodiny);
+    lcd.print(":");
+    if (minuty < 10) lcd.print("0");
+    lcd.print(minuty);
+    lcd.print(":");
+    if (sekundy < 10) lcd.print("0");
+    lcd.print(sekundy);
+
+    // Zobrazení zadaného hesla
+    lcd.setCursor(0, 1);
+    lcd.print(zadano);
+
+    // Čtení klávesnice
+    char klavesa = klavesnice.getKey();
+
+    // --- Defuse logika ---
+    if (klavesa == '0') {
+      if (!zeroHeld) {
+        zeroHeld = true;
+        zeroHoldStart = millis();
+      } else {
+        if (millis() - zeroHoldStart >= 10000) { // 10 sekund
+          lcd.clear();
+          lcd.print("Bomba defusenuta!");
+          vyhral += 1;
+          tone(bzucak, 920);
+          delay(100);
+          noTone(bzucak);
+          delay(100);
+          tone(bzucak, 920);
+          delay(600);
+          noTone(bzucak);
+          mainMenu();
+          return;
+        }
+      }
+    } else {
+      zeroHeld = false;
+      zeroHoldStart = 0;
+    }
+
+    if (klavesa && klavesa != '0') {
+      if (klavesa >= '0' && klavesa <= '9') {
+        zadano += klavesa;
+      }
+
+      if (klavesa == '#') {
+        if (zadano == heslo) {
+          lcd.clear();
+          lcd.print("Odpovida heslu");
+          vyhral += 1;
+          tone(bzucak,920);
+          delay(100);
+          noTone(bzucak);
+          delay(100);
+          tone(bzucak,920);
+          delay(600);
+          noTone(bzucak);
+          mainMenu();
+          return;
+        } 
+        if (zadano == "67"){
+          lcd.clear();
+          lcd.print("MUSTAAAAAAAAAAAAAARD");
+          delay(1500);
+          mainMenu();
+          return;
+        }
+
+        else {
+          lcd.clear();
+          lcd.print("Neodpovida heslu");
+          tone(bzucak,223);
+          delay(100);
+          noTone(bzucak);
+          delay(100);
+          tone(bzucak,223);
+          delay(600);
+          noTone(bzucak);
+          delay(100);
+          zadano = "";
+        }
+      }
+    }
+
+    // Bzučák – neblokující
+    if (Time > 10) {
+      if (millis() - lastBuzz >= 1000) {
+        lastBuzz += 1000;
+        tone(bzucak, 523, 200);
+      }
+    } else if (Time > 5) {
+      if (millis() - lastBuzz >= 200) {
+        lastBuzz += 200;
+        tone(bzucak, 880, 50);
+      }
+    } else if (Time > 0) {
+      if (millis() - lastBuzz >= 100) {
+        lastBuzz += 100;
+        tone(bzucak, 1046, 30); // ještě rychlejší a vyšší tón
+      }
+    }
+  }
+
+  lcd.clear();
+  lcd.print("Bomba vybuchla");
+  prohral += 1;
+  tone(bzucak,1046);
+  delay(5000);
+  noTone(bzucak);
+  mainMenu();
 }
 
 void odpocetBomby(int doba, String mod, String heslo) {
@@ -436,7 +582,7 @@ void Cs2Menu(){
     }
 
     if (klavesa == '2') {
-      //trueCS2Hra();
+      odpocetTrueCS2(45,"TrueCS2", password);
       return;
     }
 
