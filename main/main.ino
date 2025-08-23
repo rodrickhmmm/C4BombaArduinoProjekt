@@ -86,7 +86,7 @@ void CS2Hra(){
       displayheslo = "";
       return;
     }
-    if (klavesa == '#'){
+    if (klavesa == '*'){
       selectBuzz;
       mainMenu();
       return;
@@ -134,7 +134,7 @@ void MoreModes(){
       return;
     }
 
-    if (klavesa == '#'){
+    if (klavesa == '*'){
       selectBuzz();
       noTone(bzucak);
       mainMenu();
@@ -436,7 +436,7 @@ void StndMenu(){
       return;
     }
 
-    if (klavesa == '#'){
+    if (klavesa == '*'){
       selectBuzz();
       mainMenu();
       return;
@@ -470,7 +470,7 @@ void Cs2Menu(){
       return;
     }
 
-    if (klavesa == '#'){
+    if (klavesa == '*'){
       selectBuzz();
       mainMenu();
       return;
