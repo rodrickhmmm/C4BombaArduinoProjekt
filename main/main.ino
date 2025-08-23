@@ -46,6 +46,7 @@ void Stats(){
   lcd.clear();
   mainMenu();
 }
+
 void CS2Hra(){
 
   String heslo = "";
@@ -87,7 +88,7 @@ void CS2Hra(){
       return;
     }
     if (klavesa == '*'){
-      selectBuzz;
+      selectBuzz();
       mainMenu();
       return;
     }
@@ -372,7 +373,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
           delay(600);
           noTone(bzucak);
           delay(100);
-          time = time - 5
+          Time = Time - 5;
           zadano = "";
         }
       }
@@ -402,7 +403,9 @@ void odpocetBomby(int doba, String mod, String heslo) {
       delay(5000);
       noTone(bzucak);
       mainMenu();
+    }
   }
+}
 
 void StndMenu(){
 
