@@ -379,30 +379,49 @@ void odpocetBomby(int doba, String mod, String heslo) {
       }
     }
 
-    // Bzučák – neblokující
+    // Bzučák + LED – neblokující
     if (Time > 10) {
       if (millis() - lastBuzz >= 1000) {
         lastBuzz += 1000;
-        tone(bzucak, 523, 200);
+        tone(bzucak, 523);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(200);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
       }
     } else if (Time > 5) {
       if (millis() - lastBuzz >= 200) {
         lastBuzz += 200;
-        tone(bzucak, 880, 50);
+        tone(bzucak, 880);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(50);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
       }
-    } else if (Time > 2) {
+    } else if (Time > 2) { // 5,4,3 sekundy
       if (millis() - lastBuzz >= 100) {
         lastBuzz += 100;
-        tone(bzucak, 1046, 30); // ještě rychlejší a vyšší tón
+        tone(bzucak, 1046);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(30);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
       }
-    } else if (Time > 0) {
+    } else if (Time <= 2 && Time > 0) { // 2,1 sekunda
+      tone(bzucak, 1046);
+      digitalWrite(LED_BUILTIN, HIGH);
+      // konstantní tón a LED, neblokuje cyklus
+    } else if (Time == 0) {
       lcd.clear();
       lcd.print("Bomba vybuchla");
       prohral += 1;
       tone(bzucak,1046);
+      digitalWrite(LED_BUILTIN, HIGH);
       delay(5000);
       noTone(bzucak);
+      digitalWrite(LED_BUILTIN, LOW);
       mainMenu();
+      return;
     }
   }
 }
@@ -504,11 +523,13 @@ void setup() {
   mainMenu();
 
   pinMode(LED_BUILTIN, OUTPUT);
+
 }
 
 Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
 void loop() {
+
   char klavesa = klavesnice.getKey();
 
   if (klavesa == '1') {
