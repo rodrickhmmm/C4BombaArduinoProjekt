@@ -59,8 +59,10 @@ byte tretiStrana[] = {
 };
 
 void selectBuzz(){
+  digitalWrite(LED_BUILTIN,HIGH);
   tone(bzucak,554);
   delay(150);
+  digitalWrite(LED_BUILTIN,LOW);
   noTone(bzucak);
 }
 
@@ -128,6 +130,27 @@ void CS2Hra(){
   }
 }
 
+void scrollText(String text) {
+  int lcdWidth = 16;
+  String displayText = text;
+  for (int i = 0; i < lcdWidth; i++) displayText += " "; // přidá 16 mezer na konec
+  int len = displayText.length();
+
+  for (int i = 0; i < len; i++) {
+    lcd.clear();
+    int startIdx = max(0, i - lcdWidth);
+    int endIdx = min(len, i);
+    String toShow = displayText.substring(startIdx, endIdx);
+    while (toShow.length() < lcdWidth) {
+      toShow = " " + toShow;
+    }
+    lcd.setCursor(0, 0);
+    lcd.print(toShow);
+    delay(350);
+  }
+  lcd.clear();
+}
+
 void Credits(){
   selectBuzz();
   lcd.clear();
@@ -138,6 +161,8 @@ void Credits(){
   lcd.setCursor(0,0); lcd.print("Rodrick:kod");
   lcd.setCursor(0,1); lcd.print("Ocasnik:zapojeni");
   delay(3000);
+  lcd.clear();
+  scrollText("github.com/rodrickhmmm/C4BombaArduinoProjekt/");
   mainMenu();
 }
 
@@ -342,7 +367,7 @@ void customHra(){
         doba = "";
         return;
       }
-      
+
       if (klavesa == '*'){
         selectBuzz();
         mainMenu();
