@@ -25,6 +25,39 @@ char keys[radky][sloupce] = {
 byte pinyRadku[radky] = {9, 8, 7, 6};
 byte pinySloupcu[sloupce] = {5, 4, 3};
 
+byte prvniStrana[] = {
+  B00000,
+  B00100,
+  B01100,
+  B00100,
+  B00100,
+  B01110,
+  B00000,
+  B11111
+};
+
+byte druhaStrana[] = {
+  B00000,
+  B01110,
+  B00010,
+  B00110,
+  B01000,
+  B01110,
+  B00000,
+  B11111
+};
+
+byte tretiStrana[] = {
+  B00000,
+  B01110,
+  B00010,
+  B00110,
+  B00010,
+  B01110,
+  B00000,
+  B11111
+};
+
 void selectBuzz(){
   tone(bzucak,554);
   delay(150);
@@ -107,13 +140,88 @@ void Credits(){
   delay(3000);
   mainMenu();
 }
+
+void Manual(){
+  selectBuzz();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("* se vracis do");
+  lcd.setCursor(0, 1);
+  lcd.print("main menu");
+  lcd.setCursor(15, 0);
+  lcd.write(byte(0));
+  lcd.setCursor(15, 1);
+  lcd.print("3");
+
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+
+    // Počkej, dokud není žádná klávesa stisknutá
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+    // Čekej na stisknutí '6'
+  while (true) {
+    char klavesa = klavesnice.getKey();
+
+    if (klavesa == '1'){
+      selectBuzz();
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("* se vracis do");
+      lcd.setCursor(0, 1);
+      lcd.print("main menu");
+      lcd.setCursor(15, 0);
+      lcd.write(byte(0));
+      lcd.setCursor(15, 1);
+      lcd.print("3");
+    }
+    
+    if (klavesa == '2'){
+      selectBuzz();
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("# potvrzujes");
+      lcd.setCursor(0, 1);
+      lcd.print("zadani psw,cas");
+      lcd.setCursor(15, 0);
+      lcd.write(byte(1));
+      lcd.setCursor(15, 1);
+      lcd.print("3");
+    }
+
+    if (klavesa == '3'){
+      selectBuzz();
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Pro vice info -");
+      lcd.setCursor(0, 1);
+      lcd.print("repo na githubu");
+      lcd.setCursor(15, 0);
+      lcd.write(byte(2));
+      lcd.setCursor(15, 1);
+      lcd.print("3");
+    }
+
+    if (klavesa == '*'){
+      selectBuzz();
+      noTone(bzucak);
+      mainMenu();
+      return;
+    }
+    delay(10);
+  }
+
+}
 void MoreModes(){
   lcd.clear();            
   selectBuzz();
   lcd.setCursor(0, 0); lcd.print("Stats");
   lcd.setCursor(2,1); lcd.print("1");
-  lcd.setCursor(10, 0); lcd.print("Credits"); 
-  lcd.setCursor(12,1); lcd.print("4");
+  lcd.setCursor(6, 0); lcd.print("Man.");
+  lcd.setCursor(7,1); lcd.print("2");
+  lcd.setCursor(12, 0); lcd.print("Cred"); 
+  lcd.setCursor(13,1); lcd.print("3");
 
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
@@ -130,8 +238,13 @@ void MoreModes(){
       Stats();
       return;
     }
-    if (klavesa == '4') {
+    if (klavesa == '3') {
       Credits();
+      return;
+    }
+
+    if (klavesa == '2'){
+      Manual();
       return;
     }
 
@@ -190,6 +303,12 @@ void customHra(){
         lcd.setCursor(0,1);
         break;
       }
+
+      if (klavesa == '*'){
+        selectBuzz();
+        mainMenu();
+        return;
+      }
     }
 
     while (zadanoheslo = true) {
@@ -221,6 +340,12 @@ void customHra(){
         aktivujBombu(dobaVint, "CTM", heslo);
         heslo = "";
         doba = "";
+        return;
+      }
+      
+      if (klavesa == '*'){
+        selectBuzz();
+        mainMenu();
         return;
       }
 
@@ -343,7 +468,9 @@ void odpocetBomby(int doba, String mod, String heslo) {
         }
         if (zadano == "420"){
           lcd.clear();
-          lcd.print("SMOKE WEED EVERY DAY");
+          lcd.print("SMOKE WEED EVERY");
+          lcd.setCursor(0,1);
+          lcd.print("DAY");
           delay(1500);
           mainMenu();
           return;
@@ -357,7 +484,9 @@ void odpocetBomby(int doba, String mod, String heslo) {
         }
         if (zadano == "41"){
           lcd.clear();
-          lcd.print("TS IS SO TUFF BOI");
+          lcd.print("TS IS SO TUFF");
+          lcd.setCursor(0,1);
+          lcd.print("BOI");
           delay(1500);
           mainMenu();
           return;
@@ -510,6 +639,9 @@ void mainMenu() {
 }
 
 void setup() {
+  lcd.createChar(0, prvniStrana);
+  lcd.createChar(1, druhaStrana);
+  lcd.createChar(2, tretiStrana);
   pinMode(bzucak,OUTPUT);
 
   Serial.begin(9600);
