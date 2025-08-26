@@ -1,6 +1,7 @@
 #include <Keypad.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <EEPROM.h> // Add this include if not present
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -66,7 +67,18 @@ void selectBuzz(){
   noTone(bzucak);
 }
 
-void Stats(){
+void ulozStats() {
+  EEPROM.put(0, vyhral);
+  EEPROM.put(sizeof(int), prohral);
+}
+
+void nactiStats() {
+  EEPROM.get(0, vyhral);
+  EEPROM.get(sizeof(int), prohral);
+}
+
+void Stats() {
+  nactiStats(); // načte hodnoty z EEPROM do vyhral a prohral
   selectBuzz();
   lcd.clear();
   lcd.setCursor(0,0);
@@ -473,6 +485,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
           lcd.clear();
           lcd.print("Odpovida heslu");
           vyhral += 1;
+          ulozStats(); // <-- uloží statistiky
           tone(bzucak,920);
           delay(100);
           noTone(bzucak);
@@ -569,6 +582,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
       lcd.clear();
       lcd.print("Bomba vybuchla");
       prohral += 1;
+      ulozStats(); // <-- uloží statistiky
       tone(bzucak,1046);
       digitalWrite(LED_BUILTIN, HIGH);
       delay(5000);
@@ -671,6 +685,16 @@ void setup() {
   lcd.createChar(1, druhaStrana);
   lcd.createChar(2, tretiStrana);
   pinMode(bzucak,OUTPUT);
+
+  // Kontrola inicializace EEPROM
+  if (EEPROM.read(100) != 123) { // 100 je libovolná adresa, 123 je marker
+    vyhral = 0;
+    prohral = 0;
+    ulozStats();
+    EEPROM.write(100, 123); // nastav marker
+  } else {
+    nactiStats(); // načte uložené statistiky
+  }
 
   lcd.setCursor(0, 0);
   lcd.print("C4 Bomba");
