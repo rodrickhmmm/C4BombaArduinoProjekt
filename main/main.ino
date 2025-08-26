@@ -664,15 +664,14 @@ void mainMenu() {
 }
 
 void setup() {
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
   lcd.createChar(0, prvniStrana);
   lcd.createChar(1, druhaStrana);
   lcd.createChar(2, tretiStrana);
   pinMode(bzucak,OUTPUT);
 
-  Serial.begin(9600);
-  lcd.init();
-  lcd.backlight();
-  
   lcd.setCursor(0, 0);
   lcd.print("C4 Bomba");
   delay(1500);
@@ -680,7 +679,6 @@ void setup() {
   mainMenu();
 
   pinMode(LED_BUILTIN, OUTPUT);
-
 }
 
 Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
