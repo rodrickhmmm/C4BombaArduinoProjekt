@@ -9,6 +9,7 @@ String password = "7355608";
 
 int vyhral = 0;
 int prohral = 0;
+int TrueCS2Mode = 0; // Declare at the top
 
 const int bzucak = 12;
 
@@ -59,6 +60,51 @@ byte tretiStrana[] = {
   B11111
 };
 
+byte C41[] = {
+  B10000,
+  B10111,
+  B10101,
+  B10111,
+  B10101,
+  B10111,
+  B10000,
+  B11111
+};
+
+byte C42[] = {
+  B00001,
+  B11101,
+  B10101,
+  B11101,
+  B10101,
+  B11101,
+  B00001,
+  B11111
+};
+
+byte C43[] = {
+  B11111,
+  B10000,
+  B10000,
+  B10111,
+  B10100,
+  B10111,
+  B10000,
+  B10000
+};
+
+byte C44[] = {
+  B11111,
+  B00001,
+  B00001,
+  B11101,
+  B00101,
+  B11101,
+  B00001,
+  B00001
+};
+
+
 void selectBuzz(){
   digitalWrite(LED_BUILTIN,HIGH);
   tone(bzucak,554);
@@ -70,11 +116,13 @@ void selectBuzz(){
 void ulozStats() {
   EEPROM.put(0, vyhral);
   EEPROM.put(sizeof(int), prohral);
+  EEPROM.put(2 * sizeof(int), TrueCS2Mode); // Save TrueCS2Mode
 }
 
 void nactiStats() {
   EEPROM.get(0, vyhral);
   EEPROM.get(sizeof(int), prohral);
+  EEPROM.get(2 * sizeof(int), TrueCS2Mode); // Load TrueCS2Mode
 }
 
 void Stats() {
@@ -89,9 +137,42 @@ void Stats() {
   lcd.print("Prohral:");
   lcd.setCursor(9,1);
   lcd.print(prohral);
-  delay(2500);
-  lcd.clear();
-  mainMenu();
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+
+    // Počkej, dokud není žádná klávesa stisknutá
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+    // Čekej na stisknutí '6'
+  while (true) {
+    char klavesa = klavesnice.getKey();
+
+    if (klavesa == '#'){
+      selectBuzz();
+      vyhral = 0;
+      prohral = 0;
+      ulozStats(); 
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Vyhral:");
+      lcd.setCursor(8,0);
+      lcd.print(vyhral);
+      lcd.setCursor(0,1);
+      lcd.print("Prohral:");
+      lcd.setCursor(9,1);
+      lcd.print(prohral);
+    }
+
+    if (klavesa == '*'){
+      selectBuzz();
+      noTone(bzucak);
+      mainMenu();
+      return;
+    }
+    delay(10);
+  }
+
 }
 
 void CS2Hra(){
@@ -656,7 +737,10 @@ void Cs2Menu(){
     }
 
     if (klavesa == '2') {
-      //odpocetTrueCS2(45,"TrueCS2", password);
+      TrueCS2Mode = 1;
+      ulozStats();
+      lcd.clear();
+      lcd.print("Vypni bombu");
       return;
     }
 
@@ -684,6 +768,10 @@ void setup() {
   lcd.createChar(0, prvniStrana);
   lcd.createChar(1, druhaStrana);
   lcd.createChar(2, tretiStrana);
+  lcd.createChar(3, C41);
+  lcd.createChar(4, C42);
+  lcd.createChar(5, C43);
+  lcd.createChar(6, C44);
   pinMode(bzucak,OUTPUT);
 
   // Kontrola inicializace EEPROM
@@ -696,13 +784,31 @@ void setup() {
     nactiStats(); // načte uložené statistiky
   }
 
-  lcd.setCursor(0, 0);
-  lcd.print("C4 Bomba");
-  delay(1500);
+  if (TrueCS2Mode == -1){
+    lcd.setCursor(0, 0);
+    lcd.print("C4 Bomba");
+    lcd.setCursor(14, 1);
+    lcd.write(byte(3));
+    lcd.setCursor(15, 1);
+    lcd.write(byte(4));
+    lcd.setCursor(14, 0);
+    lcd.write(byte(5));
+    lcd.setCursor(15, 0);
+    lcd.write(byte(6));
+    delay(1500);
 
-  mainMenu();
+    mainMenu();
 
-  pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
+  }
+  else{
+    lcd.clear();
+    lcd.print("TrueCS2Mode on");
+    TrueCS2Mode = -1;
+    ulozStats();
+    delay(500);
+    customHra();
+  }
 }
 
 Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
