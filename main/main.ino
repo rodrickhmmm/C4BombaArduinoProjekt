@@ -621,7 +621,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
           delay(600);
           noTone(bzucak);
           delay(100);
-          Time = Time - 5;
+          //Time = Time - 5;
           zadano = "";
         }
       }
