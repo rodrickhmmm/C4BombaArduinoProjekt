@@ -784,7 +784,7 @@ void setup() {
     nactiStats(); // načte uložené statistiky
   }
 
-  if (TrueCS2Mode == -1){
+  if (TrueCS2Mode == 0){
     lcd.setCursor(0, 0);
     lcd.print("C4 Bomba");
     lcd.setCursor(14, 1);
@@ -804,10 +804,10 @@ void setup() {
   else{
     lcd.clear();
     lcd.print("TrueCS2Mode on");
-    TrueCS2Mode = -1;
+    TrueCS2Mode = 0;
     ulozStats();
     delay(500);
-    customHra();
+    odpocetBomby(45,"TrueCS2", password);
   }
 }
 
