@@ -1,3 +1,4 @@
+
 #include <Keypad.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -123,6 +124,194 @@ void nactiStats() {
   EEPROM.get(0, vyhral);
   EEPROM.get(sizeof(int), prohral);
   EEPROM.get(2 * sizeof(int), TrueCS2Mode); // Load TrueCS2Mode
+}
+
+void TrueCS2ModeFunc() {
+  String heslo = "";
+  String displayheslo = "";
+  selectBuzz();
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TrueCS2 Mode");
+  delay(500);
+  lcd.clear();
+  lcd.print("Zadej heslo:");
+
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  while (true) {
+    char klavesa = klavesnice.getKey();
+    if (klavesa >= '0' && klavesa <= '9') {
+      lcd.clear();
+      selectBuzz();
+      lcd.setCursor(0,0);
+      lcd.print("Zadej heslo:");
+      lcd.setCursor(0,1);
+      heslo += klavesa;
+      displayheslo += "*";
+      lcd.print(displayheslo);
+    }
+    if (klavesa == '#'){
+      lcd.clear();
+      TrueCS2Countdown(45, heslo);
+      return;
+    }
+    if (klavesa == '*'){
+      selectBuzz();
+      mainMenu();
+      return;
+    }
+  }
+}
+
+void TrueCS2Countdown(int doba, String heslo) {
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  int Time = doba;
+  String zadano = "";
+  // bool canDefuse = false; // removed duplicate declaration
+  lcd.clear();
+  unsigned long lastTick = millis();
+  unsigned long lastBuzz = millis();
+  bool canDefuse = false;
+  int defusePresses = 0;
+  int defuseNeeded = 10;
+
+  while (Time > 0) {
+    // Bomb timer
+    if (millis() - lastTick >= 1000) {
+      lastTick += 1000;
+      Time--;
+      lcd.clear();
+    }
+
+    // Show either bomb timer or defuse progress
+    if (!canDefuse) {
+      int hodiny = Time / 3600;
+      int minuty = (Time % 3600) / 60;
+      int sekundy = Time % 60;
+      lcd.setCursor(4, 0);
+      if (hodiny < 10) lcd.print("0");
+      lcd.print(hodiny);
+      lcd.print(":");
+      if (minuty < 10) lcd.print("0");
+      lcd.print(minuty);
+      lcd.print(":");
+      if (sekundy < 10) lcd.print("0");
+      lcd.print(sekundy);
+      lcd.setCursor(0, 1);
+      lcd.print(zadano);
+    } else {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Defusing:");
+      lcd.setCursor(0,1);
+      lcd.print(defusePresses);
+      lcd.print("/");
+      lcd.print(defuseNeeded);
+    }
+
+    // Keypad logic
+    char klavesa = klavesnice.getKey();
+    if (!canDefuse) {
+      if (klavesa) {
+        if (klavesa >= '0' && klavesa <= '9') {
+          zadano += klavesa;
+        }
+        if (klavesa == '#') {
+          if (zadano == heslo) {
+            zadano = "";
+            canDefuse = true;
+            lcd.clear();
+            lcd.print("Defuse: Press 1");
+            delay(1000);
+          }
+        }
+      }
+    } else {
+      if (klavesa == '1') {
+        defusePresses++;
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Defusing:");
+        lcd.setCursor(0,1);
+        lcd.print(defusePresses);
+        lcd.print("/");
+        lcd.print(defuseNeeded);
+        delay(300); // debounce and show progress
+        if (defusePresses >= defuseNeeded) {
+          lcd.clear();
+          lcd.print("Bomb defused!");
+          vyhral += 1;
+          ulozStats();
+          tone(bzucak,920);
+          delay(100);
+          noTone(bzucak);
+          delay(100);
+          tone(bzucak,920);
+          delay(600);
+          noTone(bzucak);
+          mainMenu();
+          return;
+        }
+      }
+    }
+
+    // Bomb explosion
+    if (Time <= 0) {
+      lcd.clear();
+      lcd.print("Bomba vybuchla");
+      prohral += 1;
+      ulozStats();
+      tone(bzucak,1046);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(5000);
+      noTone(bzucak);
+      digitalWrite(LED_BUILTIN, LOW);
+      mainMenu();
+      return;
+    }
+
+    // Buzzer/LED logic (copied from odpocetBomby)
+    if (Time > 10) {
+      if (millis() - lastBuzz >= 1000) {
+        lastBuzz += 1000;
+        tone(bzucak, 523);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(200);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+    } else if (Time > 5) {
+      if (millis() - lastBuzz >= 200) {
+        lastBuzz += 200;
+        tone(bzucak, 880);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(50);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+    } else if (Time > 2) {
+      if (millis() - lastBuzz >= 100) {
+        lastBuzz += 100;
+        tone(bzucak, 1046);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(30);
+        noTone(bzucak);
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+    } else if (Time <= 2 && Time > 0) {
+      tone(bzucak, 1046);
+      digitalWrite(LED_BUILTIN, HIGH);
+      // konstantní tón a LED, neblokuje cyklus
+    }
+  }
 }
 
 void Stats() {
@@ -807,7 +996,7 @@ void setup() {
     TrueCS2Mode = 0;
     ulozStats();
     delay(500);
-    odpocetBomby(45,"TrueCS2", password);
+    TrueCS2ModeFunc();
   }
 }
 
