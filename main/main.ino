@@ -131,11 +131,6 @@ void TrueCS2ModeFunc() {
   String displayheslo = "";
   selectBuzz();
   lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("TrueCS2 Mode");
-  delay(500);
-  lcd.clear();
-  lcd.print("Zadej heslo:");
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
   while (klavesnice.getKey() != NO_KEY) {
@@ -147,9 +142,7 @@ void TrueCS2ModeFunc() {
     if (klavesa >= '0' && klavesa <= '9') {
       lcd.clear();
       selectBuzz();
-      lcd.setCursor(0,0);
-      lcd.print("Zadej heslo:");
-      lcd.setCursor(0,1);
+      lcd.setCursor(4,0);
       heslo += klavesa;
       displayheslo += "*";
       lcd.print(displayheslo);
@@ -182,6 +175,7 @@ void TrueCS2Countdown(int doba, String heslo) {
   bool canDefuse = false;
   int defusePresses = 0;
   int defuseNeeded = 10;
+  unsigned long lastDefusePress = 0;
 
   while (Time > 0) {
     // Bomb timer
@@ -232,33 +226,54 @@ void TrueCS2Countdown(int doba, String heslo) {
             lcd.print("Defuse: Press 1");
             delay(1000);
           }
+          else{
+            lcd.clear();
+            lcd.print("Neodpovida heslu");
+            tone(bzucak,223);
+            delay(100);
+            noTone(bzucak);
+            delay(100);
+            tone(bzucak,223);
+            delay(600);
+            noTone(bzucak);
+            delay(100);
+            //Time = Time - 5;
+            zadano = "";
+          }
         }
       }
     } else {
       if (klavesa == '1') {
-        defusePresses++;
-        lcd.clear();
-        lcd.setCursor(0,0);
-        lcd.print("Defusing:");
-        lcd.setCursor(0,1);
-        lcd.print(defusePresses);
-        lcd.print("/");
-        lcd.print(defuseNeeded);
-        delay(300); // debounce and show progress
-        if (defusePresses >= defuseNeeded) {
+        unsigned long now = millis();
+        if (now - lastDefusePress >= 1000) { // only count if at least 1s since last
+          defusePresses++;
+          lastDefusePress = now;
           lcd.clear();
-          lcd.print("Bomb defused!");
-          vyhral += 1;
-          ulozStats();
-          tone(bzucak,920);
-          delay(100);
-          noTone(bzucak);
-          delay(100);
-          tone(bzucak,920);
-          delay(600);
-          noTone(bzucak);
-          mainMenu();
-          return;
+          lcd.setCursor(0,0);
+          lcd.print("Defusing:");
+          lcd.setCursor(0,1);
+          lcd.print(defusePresses);
+          lcd.print("/");
+          lcd.print(defuseNeeded);
+          if (defusePresses >= defuseNeeded) {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Bomba");
+            lcd.setCursor(0, 1);
+            lcd.print("Zneskodnena!");
+            TrueCS2Mode = 0;
+            vyhral += 1;
+            ulozStats();
+            tone(bzucak,920);
+            delay(100);
+            noTone(bzucak);
+            delay(100);
+            tone(bzucak,920);
+            delay(600);
+            noTone(bzucak);
+            mainMenu();
+            return;
+          }
         }
       }
     }
@@ -267,6 +282,7 @@ void TrueCS2Countdown(int doba, String heslo) {
     if (Time <= 0) {
       lcd.clear();
       lcd.print("Bomba vybuchla");
+      TrueCS2Mode = 0;
       prohral += 1;
       ulozStats();
       tone(bzucak,1046);
@@ -991,11 +1007,6 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
   }
   else{
-    lcd.clear();
-    lcd.print("TrueCS2Mode on");
-    TrueCS2Mode = 0;
-    ulozStats();
-    delay(500);
     TrueCS2ModeFunc();
   }
 }
