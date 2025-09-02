@@ -199,12 +199,10 @@ void TrueCS2Countdown(int doba, String heslo) {
       lcd.print(":");
       if (sekundy < 10) lcd.print("0");
       lcd.print(sekundy);
-      lcd.setCursor(0, 1);
-      lcd.print(zadano);
     } else {
       lcd.clear();
       lcd.setCursor(0,0);
-      lcd.print("Defusing:");
+      lcd.print("Zneskodnovani:");
       lcd.setCursor(0,1);
       lcd.print(defusePresses);
       lcd.print("/");
@@ -223,7 +221,10 @@ void TrueCS2Countdown(int doba, String heslo) {
             zadano = "";
             canDefuse = true;
             lcd.clear();
-            lcd.print("Defuse: Press 1");
+            lcd.print("Zneskodneni:");
+            lcd.setCursor(0, 1);
+            lcd.print("Stiskni 1");
+            lcd.setCursor(0, 0);
             delay(1000);
           }
           else{
@@ -250,7 +251,7 @@ void TrueCS2Countdown(int doba, String heslo) {
           lastDefusePress = now;
           lcd.clear();
           lcd.setCursor(0,0);
-          lcd.print("Defusing:");
+          lcd.print("Zneskodnuje:");
           lcd.setCursor(0,1);
           lcd.print(defusePresses);
           lcd.print("/");
@@ -617,14 +618,24 @@ void customHra(){
       }
 
       if (klavesa == '#'){
-        dobaVint = doba.toInt();
-        lcd.clear();
-        zadanadoba = false;  // ukončí smyčku
-        selectBuzz();
-        lcd.setCursor(0,0);
-        lcd.print("Zadej heslo:");
-        lcd.setCursor(0,1);
-        break;
+        if (doba != ""){
+          dobaVint = doba.toInt();
+          lcd.clear();
+          zadanadoba = false;  // ukončí smyčku
+          selectBuzz();
+          lcd.setCursor(0,0);
+          lcd.print("Zadej heslo:");
+          lcd.setCursor(0,1);
+          break;
+        }
+        else{
+          selectBuzz();
+          lcd.clear();
+          lcd.print("Vypln dobu!");
+          delay(1000);
+          lcd.clear();
+          lcd.print("Zadej dobu (s):");
+        }
       }
 
       if (klavesa == '*'){
@@ -648,22 +659,32 @@ void customHra(){
       }
 
       if (klavesa == '#'){
-        selectBuzz();
-        lcd.clear();
-        lcd.setCursor(0,0);
-        lcd.print("Doba:");
-        lcd.setCursor(5,0);
-        lcd.print(doba);
-        lcd.setCursor(0,1);
-        lcd.print("Heslo:");
-        lcd.setCursor(6,1);
-        lcd.print(heslo);
-        delay(2000);
-        zadanoheslo = false;  // ukončí smyčku
-        aktivujBombu(dobaVint, "CTM", heslo);
-        heslo = "";
-        doba = "";
-        return;
+        if (heslo != ""){
+          selectBuzz();
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print("Doba:");
+          lcd.setCursor(5,0);
+          lcd.print(doba);
+          lcd.setCursor(0,1);
+          lcd.print("Heslo:");
+          lcd.setCursor(6,1);
+          lcd.print(heslo);
+          delay(2000);
+          zadanoheslo = false;  // ukončí smyčku
+          aktivujBombu(dobaVint, "CTM", heslo);
+          heslo = "";
+          doba = "";
+          return;
+        }
+        else{
+          selectBuzz();
+          lcd.clear();
+          lcd.print("Vypln heslo!");
+          delay(1000);
+          lcd.clear();
+          lcd.print("Zadej heslo:");
+        }
       }
 
       if (klavesa == '*'){
