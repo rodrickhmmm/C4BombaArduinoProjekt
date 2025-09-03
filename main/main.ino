@@ -2,7 +2,7 @@
 #include <Keypad.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <EEPROM.h> // Add this include if not present
+#include <EEPROM.h> 
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -10,11 +10,11 @@ String password = "7355608";
 
 int vyhral = 0;
 int prohral = 0;
-int TrueCS2Mode = 0; // Declare at the top
+int TrueCS2Mode = 0; 
+int TrueCS2ModeCas = 0;
 
 const int bzucak = 12;
 
-// nastavení klávesnice 4x3
 const byte radky = 4;
 const byte sloupce = 3;
 
@@ -117,18 +117,22 @@ void selectBuzz(){
 void ulozStats() {
   EEPROM.put(0, vyhral);
   EEPROM.put(sizeof(int), prohral);
-  EEPROM.put(2 * sizeof(int), TrueCS2Mode); // Save TrueCS2Mode
+  EEPROM.put(2 * sizeof(int), TrueCS2Mode);
+  EEPROM.put(3 * sizeof(int), TrueCS2ModeCas);
 }
 
 void nactiStats() {
   EEPROM.get(0, vyhral);
   EEPROM.get(sizeof(int), prohral);
-  EEPROM.get(2 * sizeof(int), TrueCS2Mode); // Load TrueCS2Mode
+  EEPROM.get(2 * sizeof(int), TrueCS2Mode);
+  EEPROM.put(3 * sizeof(int), TrueCS2ModeCas);
 }
 
 void TrueCS2ModeFunc() {
   String heslo = "";
   String displayheslo = "";
+  selectBuzz();
+  delay(500);
   selectBuzz();
   lcd.clear();
 
@@ -147,10 +151,18 @@ void TrueCS2ModeFunc() {
       displayheslo += "*";
       lcd.print(displayheslo);
     }
+    
     if (klavesa == '#'){
-      lcd.clear();
-      TrueCS2Countdown(45, heslo);
-      return;
+      if (TrueCS2ModeCas > 0){
+        lcd.clear();
+        TrueCS2Countdown(TrueCS2ModeCas, heslo);
+        return;
+      }
+      else{
+        lcd.clear();
+        TrueCS2Countdown(45, heslo);
+        return;
+      }
     }
     if (klavesa == '*'){
       selectBuzz();
@@ -168,7 +180,6 @@ void TrueCS2Countdown(int doba, String heslo) {
 
   int Time = doba;
   String zadano = "";
-  // bool canDefuse = false; // removed duplicate declaration
   lcd.clear();
   unsigned long lastTick = millis();
   unsigned long lastBuzz = millis();
@@ -178,14 +189,12 @@ void TrueCS2Countdown(int doba, String heslo) {
   unsigned long lastDefusePress = 0;
 
   while (Time > 0) {
-    // Bomb timer
     if (millis() - lastTick >= 1000) {
       lastTick += 1000;
       Time--;
       lcd.clear();
     }
 
-    // Show either bomb timer or defuse progress
     if (!canDefuse) {
       int hodiny = Time / 3600;
       int minuty = (Time % 3600) / 60;
@@ -209,7 +218,6 @@ void TrueCS2Countdown(int doba, String heslo) {
       lcd.print(defuseNeeded);
     }
 
-    // Keypad logic
     char klavesa = klavesnice.getKey();
     if (!canDefuse) {
       if (klavesa) {
@@ -238,7 +246,7 @@ void TrueCS2Countdown(int doba, String heslo) {
             delay(600);
             noTone(bzucak);
             delay(100);
-            //Time = Time - 5;
+            //Time = Time - 5; tohle zatím nechám zakomentovaný - moc to nefunguje
             zadano = "";
           }
         }
@@ -246,7 +254,7 @@ void TrueCS2Countdown(int doba, String heslo) {
     } else {
       if (klavesa == '1') {
         unsigned long now = millis();
-        if (now - lastDefusePress >= 1000) { // only count if at least 1s since last
+        if (now - lastDefusePress >= 1000) { 
           defusePresses++;
           lastDefusePress = now;
           lcd.clear();
@@ -279,7 +287,6 @@ void TrueCS2Countdown(int doba, String heslo) {
       }
     }
 
-    // Bomb explosion
     if (Time <= 0) {
       lcd.clear();
       lcd.print("Bomba vybuchla");
@@ -295,7 +302,6 @@ void TrueCS2Countdown(int doba, String heslo) {
       return;
     }
 
-    // Buzzer/LED logic (copied from odpocetBomby)
     if (Time > 10) {
       if (millis() - lastBuzz >= 1000) {
         lastBuzz += 1000;
@@ -326,13 +332,12 @@ void TrueCS2Countdown(int doba, String heslo) {
     } else if (Time <= 2 && Time > 0) {
       tone(bzucak, 1046);
       digitalWrite(LED_BUILTIN, HIGH);
-      // konstantní tón a LED, neblokuje cyklus
     }
   }
 }
 
 void Stats() {
-  nactiStats(); // načte hodnoty z EEPROM do vyhral a prohral
+  nactiStats(); 
   selectBuzz();
   lcd.clear();
   lcd.setCursor(0,0);
@@ -345,12 +350,10 @@ void Stats() {
   lcd.print(prohral);
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-    // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
 
-    // Čekej na stisknutí '6'
   while (true) {
     char klavesa = klavesnice.getKey();
 
@@ -396,7 +399,6 @@ void CS2Hra(){
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-  // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
@@ -432,7 +434,7 @@ void CS2Hra(){
 void scrollText(String text) {
   int lcdWidth = 16;
   String displayText = text;
-  for (int i = 0; i < lcdWidth; i++) displayText += " "; // přidá 16 mezer na konec
+  for (int i = 0; i < lcdWidth; i++) displayText += " ";
   int len = displayText.length();
 
   for (int i = 0; i < len; i++) {
@@ -479,12 +481,10 @@ void Manual(){
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-    // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
 
-    // Čekej na stisknutí '6'
   while (true) {
     char klavesa = klavesnice.getKey();
 
@@ -550,12 +550,10 @@ void MoreModes(){
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-  // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
 
-  // Čekej na stisknutí '6'
   while (true) {
     char klavesa = klavesnice.getKey();
     if (klavesa == '1') {
@@ -604,7 +602,7 @@ void customHra(){
   }
   
   while (true) {
-    while (zadanadoba = true) {  // porovnání, ne přiřazení
+    while (zadanadoba = true) {
       char klavesa = klavesnice.getKey();
 
       if (klavesa >= '0' && klavesa <= '9') {
@@ -621,7 +619,7 @@ void customHra(){
         if (doba != ""){
           dobaVint = doba.toInt();
           lcd.clear();
-          zadanadoba = false;  // ukončí smyčku
+          zadanadoba = false; 
           selectBuzz();
           lcd.setCursor(0,0);
           lcd.print("Zadej heslo:");
@@ -671,7 +669,7 @@ void customHra(){
           lcd.setCursor(6,1);
           lcd.print(heslo);
           delay(2000);
-          zadanoheslo = false;  // ukončí smyčku
+          zadanoheslo = false; 
           aktivujBombu(dobaVint, "CTM", heslo);
           heslo = "";
           doba = "";
@@ -717,12 +715,10 @@ void aktivujBombu(int doba, String mod, String heslo){
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-  // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
 
-  // Čekej na stisknutí '6'
   while (true) {
     char klavesa = klavesnice.getKey();
     if (klavesa == '1') {
@@ -742,7 +738,6 @@ void aktivujBombu(int doba, String mod, String heslo){
 void odpocetBomby(int doba, String mod, String heslo) {
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
 
-  // Počkej, dokud není žádná klávesa stisknutá
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
   }
@@ -755,14 +750,12 @@ void odpocetBomby(int doba, String mod, String heslo) {
   unsigned long lastBuzz = millis();
 
   while (Time > 0) {
-    // Časový odpočet
     if (millis() - lastTick >= 1000) {
       lastTick += 1000;
       Time--;
       lcd.clear();
     }
 
-    // Zobrazení času
     int hodiny = Time / 3600;
     int minuty = (Time % 3600) / 60;
     int sekundy = Time % 60;
@@ -776,11 +769,9 @@ void odpocetBomby(int doba, String mod, String heslo) {
     if (sekundy < 10) lcd.print("0");
     lcd.print(sekundy);
 
-    // Zobrazení zadaného hesla
     lcd.setCursor(0, 1);
     lcd.print(zadano);
 
-    // Čtení klávesnice
     char klavesa = klavesnice.getKey();
     if (klavesa) {
       if (klavesa >= '0' && klavesa <= '9') {
@@ -792,7 +783,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
           lcd.clear();
           lcd.print("Odpovida heslu");
           vyhral += 1;
-          ulozStats(); // <-- uloží statistiky
+          ulozStats();
           tone(bzucak,920);
           delay(100);
           noTone(bzucak);
@@ -802,8 +793,9 @@ void odpocetBomby(int doba, String mod, String heslo) {
           noTone(bzucak);
           mainMenu();
           return;
-          // tuff cisla
         } 
+
+        // tuff cisla
         if (zadano == "67"){
           lcd.clear();
           lcd.print("SIX SEVEEEENNNNNN");
@@ -847,13 +839,12 @@ void odpocetBomby(int doba, String mod, String heslo) {
           delay(600);
           noTone(bzucak);
           delay(100);
-          //Time = Time - 5;
+          //Time = Time - 5; tohle zatím nechám zakomentovaný - moc to nefunguje
           zadano = "";
         }
       }
     }
 
-    // Bzučák + LED – neblokující
     if (Time > 10) {
       if (millis() - lastBuzz >= 1000) {
         lastBuzz += 1000;
@@ -872,7 +863,7 @@ void odpocetBomby(int doba, String mod, String heslo) {
         noTone(bzucak);
         digitalWrite(LED_BUILTIN, LOW);
       }
-    } else if (Time > 2) { // 5,4,3 sekundy
+    } else if (Time > 2) {
       if (millis() - lastBuzz >= 100) {
         lastBuzz += 100;
         tone(bzucak, 1046);
@@ -881,15 +872,14 @@ void odpocetBomby(int doba, String mod, String heslo) {
         noTone(bzucak);
         digitalWrite(LED_BUILTIN, LOW);
       }
-    } else if (Time <= 2 && Time > 0) { // 2,1 sekunda
+    } else if (Time <= 2 && Time > 0) {
       tone(bzucak, 1046);
       digitalWrite(LED_BUILTIN, HIGH);
-      // konstantní tón a LED, neblokuje cyklus
     } else if (Time == 0) {
       lcd.clear();
       lcd.print("Bomba vybuchla");
       prohral += 1;
-      ulozStats(); // <-- uloží statistiky
+      ulozStats();
       tone(bzucak,1046);
       digitalWrite(LED_BUILTIN, HIGH);
       delay(5000);
@@ -941,6 +931,42 @@ void StndMenu(){
   }
 }
 
+void TrueCS2VybratCas(){
+  lcd.clear();
+  selectBuzz();
+  Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+  lcd.print("Zadej cas (s):");
+  lcd.setCursor(0,1);
+
+  while (klavesnice.getKey() != NO_KEY) {
+    delay(10);
+  }
+
+  while (true){
+    char klavesa = klavesnice.getKey();
+    if (klavesa >= '0' && klavesa <= '9'){
+      TrueCS2ModeCas =+ klavesa.toInt(); 
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Zadej cas (s):");
+      lcd.setCursor(0,1);
+      lcd.print(TrueCS2ModeCas);
+    }
+    if (klavesa == '#'){
+      lcd.clear();
+      ulozStats();
+      lcd.print("Nastaveno na:");
+      lcd.setCursor(0,1);
+      lcd.print(TrueCS2ModeCas);
+      delay(1500);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Vypni bombu");
+      return;
+    }
+  }
+}
+
 void Cs2Menu(){
 
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
@@ -967,6 +993,13 @@ void Cs2Menu(){
       ulozStats();
       lcd.clear();
       lcd.print("Vypni bombu");
+      return;
+    }
+
+    if (klavesa == '3'){
+      TrueCS2Mode = 1;
+      ulozStats();
+      TrueCS2VybratCas();
       return;
     }
 
@@ -1000,14 +1033,13 @@ void setup() {
   lcd.createChar(6, C44);
   pinMode(bzucak,OUTPUT);
 
-  // Kontrola inicializace EEPROM
-  if (EEPROM.read(100) != 123) { // 100 je libovolná adresa, 123 je marker
+  if (EEPROM.read(100) != 123) {
     vyhral = 0;
     prohral = 0;
     ulozStats();
-    EEPROM.write(100, 123); // nastav marker
+    EEPROM.write(100, 123);
   } else {
-    nactiStats(); // načte uložené statistiky
+    nactiStats();
   }
 
   if (TrueCS2Mode == 0){
