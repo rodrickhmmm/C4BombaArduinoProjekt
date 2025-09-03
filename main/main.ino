@@ -977,9 +977,10 @@ void Cs2Menu(){
 
   selectBuzz();
   lcd.clear();
-  lcd.print("Stnd TrueCS");
+  lcd.print("Stnd TrueCS TrueCSCTM");
   lcd.setCursor(1, 1); lcd.print("1");
   lcd.setCursor(8, 1); lcd.print("2");
+  lcd.setCursor(14,1); lcd.print("3");
 
   while (true){
     char klavesa = klavesnice.getKey();
