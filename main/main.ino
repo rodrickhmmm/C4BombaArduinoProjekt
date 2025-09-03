@@ -125,10 +125,11 @@ void nactiStats() {
   EEPROM.get(0, vyhral);
   EEPROM.get(sizeof(int), prohral);
   EEPROM.get(2 * sizeof(int), TrueCS2Mode);
-  EEPROM.put(3 * sizeof(int), TrueCS2ModeCas);
+  EEPROM.get(3 * sizeof(int), TrueCS2ModeCas);
 }
 
 void TrueCS2ModeFunc() {
+  nactiStats();
   String heslo = "";
   String displayheslo = "";
   selectBuzz();
@@ -153,14 +154,14 @@ void TrueCS2ModeFunc() {
     }
     
     if (klavesa == '#'){
-      if (TrueCS2ModeCas > 0){
+      if (TrueCS2ModeCas < 0){
         lcd.clear();
-        TrueCS2Countdown(TrueCS2ModeCas, heslo);
+        TrueCS2Countdown(45, heslo);
         return;
       }
       else{
         lcd.clear();
-        TrueCS2Countdown(45, heslo);
+        TrueCS2Countdown(TrueCS2ModeCas, heslo);
         return;
       }
     }
@@ -934,9 +935,13 @@ void StndMenu(){
 void TrueCS2VybratCas(){
   lcd.clear();
   selectBuzz();
+
   Keypad klavesnice = Keypad(makeKeymap(keys), pinyRadku, pinySloupcu, radky, sloupce);
+  char klavesa = klavesnice.getKey();
+
   lcd.print("Zadej cas (s):");
   lcd.setCursor(0,1);
+  lcd.print(TrueCS2ModeCas);
 
   while (klavesnice.getKey() != NO_KEY) {
     delay(10);
@@ -945,7 +950,7 @@ void TrueCS2VybratCas(){
   while (true){
     char klavesa = klavesnice.getKey();
     if (klavesa >= '0' && klavesa <= '9'){
-      TrueCS2ModeCas =+ klavesa.toInt(); 
+      TrueCS2ModeCas = TrueCS2ModeCas * 10 + (klavesa - '0'); 
       lcd.clear();
       lcd.setCursor(0,0);
       lcd.print("Zadej cas (s):");
@@ -954,7 +959,6 @@ void TrueCS2VybratCas(){
     }
     if (klavesa == '#'){
       lcd.clear();
-      ulozStats();
       lcd.print("Nastaveno na:");
       lcd.setCursor(0,1);
       lcd.print(TrueCS2ModeCas);
@@ -962,6 +966,8 @@ void TrueCS2VybratCas(){
       lcd.clear();
       lcd.setCursor(0,0);
       lcd.print("Vypni bombu");
+      TrueCS2ModeCas = TrueCS2ModeCas;
+      ulozStats();
       return;
     }
   }
