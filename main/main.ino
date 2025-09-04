@@ -133,7 +133,7 @@ void TrueCS2ModeFunc() {
   String heslo = "";
   String displayheslo = "";
   selectBuzz();
-  delay(500);
+  delay(200);
   selectBuzz();
   lcd.clear();
 
@@ -958,11 +958,6 @@ void TrueCS2VybratCas(){
       lcd.print(TrueCS2ModeCas);
     }
     if (klavesa == '#'){
-      lcd.clear();
-      lcd.print("Nastaveno na:");
-      lcd.setCursor(0,1);
-      lcd.print(TrueCS2ModeCas);
-      delay(1500);
       lcd.clear();
       lcd.setCursor(0,0);
       lcd.print("Vypni bombu");
